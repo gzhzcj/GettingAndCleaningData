@@ -6,5 +6,9 @@
 # Part 2 : run_analysis.R
 ## R programming script to perform the work.
 
-# Part 3 : tidy_set.csv
+# Part 3 : tidy_set.txt
 ## Result of run_analysis.R
+
+# Part 4 : tidy_set.csv
+## Result of run_analysis.R (old version for csv)
+
