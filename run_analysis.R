@@ -41,30 +41,30 @@ if(!file.exists(file)){
 ## 1.1.1 Read variable names for X
 file <- file.path(getwd(), "UCI HAR Dataset/features.txt")
 message(paste("Reading from", file))
-features <- read.table(file)
+features <- read.table(file, header = FALSE, col.names=c("feature.id", "feature"))
 variable_names_x <- features[,2]
 
 ## 1.1.2 Read activity names
 file <- file.path(getwd(), "UCI HAR Dataset/activity_labels.txt")
 message(paste("Reading from", file))
-activities<-read.table(file, sep=" ", col.names=c("activity", "activity.name"))
+activities<-read.table(file, header = FALSE, col.names=c("activity.id", "activity.name"))
 
 ## 1.2. Training set
 ## 1.2.1 subject_train.txt
 file <- file.path(getwd(), "UCI HAR Dataset/train/subject_train.txt")
 message(paste("Reading from", file))
-subject_train <- read.table(file, col.names="subject")
+subject_train <- read.table(file, header = FALSE, col.names="subject")
 
 ## 1.2.2. X_train.txt
 file <- file.path(getwd(), "UCI HAR Dataset/train/X_train.txt")
 message(paste("Reading from", file))
-x_train <- read.table(file, col.names=variable_names_x )
+x_train <- read.table(file, header = FALSE, col.names=variable_names_x )
 
 ## 1.2.3. y_train.txt
 file <- file.path(getwd(), "UCI HAR Dataset/train/y_train.txt")
 message(paste("Reading from", file))
-y_train <- read.table(file, col.names = "activity" )
-activities_train <- left_join(y_train, activities, by="activity")
+y_train <- read.table(file, header = FALSE, col.names = "activity.id" )
+activities_train <- left_join(y_train, activities, by="activity.id")
 
 ## 1.2.4. transform
 set_train <- rep("training", nrow(y_train))
@@ -77,18 +77,18 @@ message(paste("Training set:", dims[1], "obs. of", dims[2], "variables"))
 ## 1.3.1. subject_test.txt
 file <- file.path(getwd(), "UCI HAR Dataset/test/subject_test.txt")
 message(paste("Reading from", file))
-subject_test <- read.table(file, col.names="subject")
+subject_test <- read.table(file, header = FALSE, col.names="subject")
 
 ## 1.3.2. X_test.txt
 file <- file.path(getwd(), "UCI HAR Dataset/test/X_test.txt")
 message(paste("Reading from", file))
-x_test <- read.table(file, col.names=variable_names_x )
+x_test <- read.table(file, header = FALSE, col.names=variable_names_x )
 
 ## 1.3.3. y_test.txt
 file <- file.path(getwd(), "UCI HAR Dataset/test/y_test.txt")
 message(paste("Reading from", file))
-y_test <- read.table(file, col.names = "activity" )
-activities_test <- left_join(y_test, activities, by="activity")
+y_test <- read.table(file, header = FALSE, col.names = "activity.id" )
+activities_test <- left_join(y_test, activities, by="activity.id")
 
 ## 1.3.4. transform
 set_test <- rep("test", nrow(y_test))
@@ -105,26 +105,28 @@ message(paste("Merged:", dims[1], "obs. of", dims[2], "variables"))
 
 ### 2. Extracts only the measurements on the mean and standard deviation 
 ###    for each measurement
-avg  <- 1: length(variable_names_x)
-sd <- 1: length(variable_names_x)
-for(x in 1:length(variable_names_x)){
-        avg[x] <- mean(data[,x+3]); 
-        sd[x] <- sd(data[,x+3]);
-}
-measurements <- data.frame(feature=variable_names_x, average=avg, sd=sd)
-print(measurements)
-#View(measurements)
+message("Only the measurements on the mean and standard deviation remain.")
+measurements <- grep(".*[M|m]ean.*|.*[S|s]td.*", variable_names_x)
+## first 3 columns are set, subject, activity, needs an offset.
+column_list <- c(2:3, measurements + 3)
+target_data <- data[, column_list]
+#print(names(target_data))
+dims<-dim(target_data)
+message(paste("Merged:", dims[1], "obs. of", dims[2], "variables"))
 
 ### 3. Uses descriptive activity names to name the activities in the data set
-#----Done in step 1.2.3 and 1.3.3
+#--- Already done in step 1.2.3 and 1.3.3
 
 ### 4. Appropriately labels the data set with descriptive variable names.
-#----Done in step 1.2.2 and 1.3.2
+#--- Already done in step 1.2.2 and 1.3.2
 
 ### 5. From the data set in step 4, creates a second, independent tidy data set
 ###    with the average of each variable for each activity and each subject.
-tidy_set <- data %>%
+tidy_set <- target_data %>%
         group_by(activity, subject) %>%
         summarise_all(mean)
-print(tidy_set)
-#View(tidy_set)
+destfile <- "tidy_set.csv"
+message(paste("Writing to", destfile))
+write.csv(tidy_set, destfile, row.names = FALSE)
+
+
