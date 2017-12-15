@@ -125,8 +125,10 @@ message(paste("Merged:", dims[1], "obs. of", dims[2], "variables"))
 tidy_set <- target_data %>%
         group_by(activity, subject) %>%
         summarise_all(mean)
-destfile <- "tidy_set.csv"
+## remove subject and activity variables.
+tidy_set2 <- tidy_set[, -(1:2)]
+destfile <- "tidy_set.txt"
 message(paste("Writing to", destfile))
-write.csv(tidy_set, destfile, row.names = FALSE)
+write.table(tidy_set2, destfile, row.names = FALSE, col.names = FALSE, append = FALSE)
 
 
