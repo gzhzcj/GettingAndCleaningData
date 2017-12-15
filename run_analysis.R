@@ -130,5 +130,6 @@ tidy_set2 <- tidy_set[, -(1:2)]
 destfile <- "tidy_set.txt"
 message(paste("Writing to", destfile))
 write.table(tidy_set2, destfile, row.names = FALSE, col.names = FALSE, append = FALSE)
+#write.csv(tidy_set, destfile, row.names = TRUE, col.names = FALSE, append = FALSE)
 
 
