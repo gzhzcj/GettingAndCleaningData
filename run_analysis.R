@@ -41,8 +41,8 @@ if(!file.exists(file)){
 ## 1.1.1 Read variable names for X
 file <- file.path(getwd(), "UCI HAR Dataset/features.txt")
 message(paste("Reading from", file))
-features <- read.table(file, header = FALSE, col.names=c("feature.id", "feature"))
-variable_names_x <- features[,2]
+features <- read.table(file, header = FALSE, col.names=c("feature.id", "feature.name"))
+variable_names_x <- as.character(features$feature.name)
 
 ## 1.1.2 Read activity names
 file <- file.path(getwd(), "UCI HAR Dataset/activity_labels.txt")
@@ -105,12 +105,13 @@ message(paste("Merged:", dims[1], "obs. of", dims[2], "variables"))
 
 ### 2. Extracts only the measurements on the mean and standard deviation 
 ###    for each measurement
+### 2.1. grep column names 
 message("Only the measurements on the mean and standard deviation remain.")
-measurements <- grep(".*[M|m]ean.*|.*[S|s]td.*", variable_names_x)
-## first 3 columns are set, subject, activity, needs an offset.
+measurements <- grep("[M|m]ean()|.*[S|s]td()", variable_names_x)
+
+### 2.2. first 3 columns are set, subject, activity, needs an offset.
 column_list <- c(2:3, measurements + 3)
 target_data <- data[, column_list]
-#print(names(target_data))
 dims<-dim(target_data)
 message(paste("Merged:", dims[1], "obs. of", dims[2], "variables"))
 
@@ -118,18 +119,20 @@ message(paste("Merged:", dims[1], "obs. of", dims[2], "variables"))
 #--- Already done in step 1.2.3 and 1.3.3
 
 ### 4. Appropriately labels the data set with descriptive variable names.
-#--- Already done in step 1.2.2 and 1.3.2
+message("Appropriately labels the data set with descriptive variable names.")
+column_list <- c("subject", "activity", variable_names_x[measurements])
+print(column_list )
+names(target_data) <- column_list
 
 ### 5. From the data set in step 4, creates a second, independent tidy data set
 ###    with the average of each variable for each activity and each subject.
+message("Create a tidy dataset.")
 tidy_set <- target_data %>%
         group_by(activity, subject) %>%
         summarise_all(mean)
 ## remove subject and activity variables.
-tidy_set2 <- tidy_set[, -(1:2)]
 destfile <- "tidy_set.txt"
 message(paste("Writing to", destfile))
-write.table(tidy_set2, destfile, row.names = FALSE, col.names = FALSE, append = FALSE)
-#write.csv(tidy_set, destfile, row.names = TRUE, col.names = FALSE, append = FALSE)
+write.table(tidy_set, destfile, row.names = FALSE, col.names = TRUE, append = FALSE)
 
 
